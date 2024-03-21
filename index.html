@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body{
+                width: 100vw;
+                height: 100vh;
+
+                display: flex;
+                justify-content: center;
+                align-items: center
+            }
+        </style>
+    </head>
+    <body>
+        <svg class='svg-selected'></svg>
+
+        <script>
+            const a2rad = a => { return a * Math.PI/180 }
+
+            const svgNS = 'http://www.w3.org/2000/svg'
+            const svgEl = document.querySelector('.svg-selected')
+
+            svgEl.style.width = '200px'
+            svgEl.style.height = '200px'
+
+            const settings = {
+                'web': {
+                    's': 'grey',
+                    'sw': '1px',
+                    'f': 'transparent'
+                },
+                'graph': {
+                    's': 'blue',
+                    'sw': '2px',
+                    'f': 'rgba(100,100,255,0.25)'
+                }
+            }
+
+            const ref = [
+                {
+                    'max': 10,
+                    'min': 1
+                },
+                {
+                    'max': 10,
+                    'min': 1
+                },
+                {
+                    'max': 10,
+                    'min': 1
+                },
+                {
+                    'max': 10,
+                    'min': 1
+                },
+                {
+                    'max': 10,
+                    'min': 1
+                },
+                {
+                    'max': 10,
+                    'min': 1
+                },
+                {
+                    'max': 10,
+                    'min': 1
+                }
+            ]
+
+            const generateGraph = (svg, set, ref, webs=5, data=null) => {
+                const svgX = svg.clientWidth
+                const svgY = svg.clientHeight
+                const greenArea = 3/8
+                const raio = svgX * greenArea
+                const sides = ref.length
+                const jump = 360/sides
+
+                const constructor = (type, grow=null, d=ref.map((ob) => {return ob.max})) => {
+                    const g = (type !== 'web') ? 1 : grow
+                    const path = []
+                    const size = d.map((v,i) => {return (v - ref[i].min)/(ref[i].max - ref[i].min)})
+                    const startX = (svgX/2) + (raio * Math.cos(a2rad(270)) * size[0] * grow)
+                    const startY = (svgY/2) + (raio * Math.sin(a2rad(270)) * size[0] * grow)
+                    const start = ['M', startX, startY].join(' ')
+                    path.push(start)
+
+                    let i=0
+                    for(let a=270; a<630; a+=jump) {
+                        const pointX = (svgX/2) + (raio * Math.cos(a2rad(a)) * size[i] * grow)
+                        const pointY = (svgY/2) + (raio * Math.sin(a2rad(a)) * size[i] * grow)
+                        const point = ['L', pointX, pointY].join(' ')
+                        path.push(point)
+                        i++
+                    } path.push('Z')
+
+                    const pathString = path.join(' ')
+                    const pathEl = document.createElementNS(svgNS, 'path')
+                    pathEl.setAttribute('d', pathString)
+                    pathEl.setAttribute('stroke', set[type].s)
+                    pathEl.setAttribute('stroke-width', set[type].sw)
+                    pathEl.setAttribute('fill', set[type].f)
+
+                    svg.appendChild(pathEl)
+                }
+
+                const randomData = () => {
+                    return ref.map((ob) => {return Math.random() * (ob.max - ob.min) + ob.min})
+                }
+
+                for(let w=0; w<webs; w++) {
+                    const grow = (webs-w)/webs
+                    constructor('web', grow)
+                }
+
+                constructor('graph', 1, randomData())
+            }
+
+            generateGraph(svgEl, settings, ref, 5)
+        </script>
+    </body>
+</html>
